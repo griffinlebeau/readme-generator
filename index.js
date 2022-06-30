@@ -1,21 +1,29 @@
 // TODO: Include packages needed for this application
-
-const generateMarkdown = require("./utils/generateMarkdown");
+const inquirer = require('inquirer');
+const fs = require('fs');
+const generateMarkdown = require('./generateMarkdown');
 
 // TODO: Create an array of questions for user input
 //inquirer
-const data = [];
 
 const promptUser = () => {
-    return inquirer.prompt([
+    console.log(`
+    ===================
+    Create A New ReadMe
+    ===================
+    `);
+    return inquirer
+    .prompt([
         {
             name:'title',
             type:'input',
-            message:'WHat is the title of your project?',
-            validate: function (input) {
-                if (!input) {
-                    console.log('You must enter a project title!')
-                    return
+            message:'What is the title of your project?',
+            validate: function (titleInput) {
+                if (titleInput) {
+                    return true
+                } else {
+                    console.log('You must enter a project title!');
+                    return false
                 }
             }
 
@@ -75,10 +83,22 @@ const promptUser = () => {
             }
         },
         {
+            name: 'confirmLicense',
+            type: 'confirm',
+            message: 'Do you have a license?',
+        },
+        {
             name: 'license',
-            type: 'choices',
+            type: 'checkbox',
             message: 'Please select your license:',
-            choices: ['Public Domain', 'Creative Commons', 'Copyright']
+            choices: ['Public Domain', 'Creative Commons', 'Copyright'],
+            when: ({confirmLicense}) => {
+                if (confirmLicense) {
+                    return true
+                } else {
+                    return false
+                }
+            }
         },
         {
             name: 'contribute',
@@ -93,44 +113,34 @@ const promptUser = () => {
         {
             name: 'test',
             type:'input',
-            message: 'Testing information:'
+            message: 'Testing information:',
+            when: ({confirmTest}) => {
+                if (confirmTest) {
+                    return true
+                } else {
+                    return false
+                }
+            }
         }
     ])
-    .then(answers => {
-        data.push(answers.title);
-            if (answers.confirmDesc === true) {
-                data.push(answers.desc)
-            };
-            if (answers.confirmInstall === true) {
-                data.push(answers.install)
-            };
-            if (answers.confirmUsage === true) {
-                data.push(answers.usage)
-            };
-        data.push(answers.license);
-        data.push(answers.contribute);
-            if (answers.confirmTest === true) {
-                data.push(answers.test)
-            }
-    })
-
+}
 
 
 // TODO: Create a function to write README file
 const writeToFile = data => {
     const mdData = generateMarkdown(data)
-    FileSystem.writeToFile('/README.md', mdData, err => {
+    fs.writeToFile('/README.md', mdData, err => {
         if (err) {
             console.log(err);
         }
     });
 }
 
-// TODO: Create a function to initialize app
-function init() {
-    promptUser()
-}
 
 // Function call to initialize app
-//init();
-}
+promptUser().then(answers => {
+    console.log(answers)
+    console.log(data)
+    //writeToFile(data)
+})
+
